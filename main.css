@@ -1,0 +1,12 @@
+body {
+  padding-top: 25px;
+  margin: 0 15% 0 15%;
+}
+
+.search-results {
+	padding: 10px;
+}
+
+.result {
+	margin: 5px;
+}
