@@ -2,16 +2,16 @@ var BASE_TRAIL_URL = 'https://trailapi-trailapi.p.mashape.com/';
 var BASE_WEATHER_URL = 'http://api.apixu.com/v1/search.json?key=245141566e984e7e9de230727161012';
 var activityDate;
 
-function getDataFromTrailApi(searchTerm, callback) {
+function getDataFromTrailApi(cityQuery, stateQuery, callback) {
     $.ajax({
-        url: BASE_TRAIL_URL + '?q[state_cont]=' + searchTerm, // The URL to the API. You can get this in the API page of the API you intend to consume
+        url: BASE_TRAIL_URL + getEndpoints(cityQuery, stateQuery), // The URL to the API. You can get this in the API page of the API you intend to consume
         type: 'GET',
         data: {}, // Additional parameters here
         dataType: 'json',
-        success: callback, //function(data) { console.dir((data.source)); },
+        success: callback,
         error: function(err) {
             console.log(err);
-            alert("There is an error" + err);
+            alert("There is an error");
         },
         beforeSend: function(xhr) {
             xhr.setRequestHeader("X-Mashape-Authorization", "IvhvrcGpoQmshzCYWrW3TPwJKMKip1PjW0Mjsnde60lb1SyWES");
@@ -20,10 +20,24 @@ function getDataFromTrailApi(searchTerm, callback) {
 }
 
 
+function getEndpoints(cityQuery, stateQuery) {
+    var endString = '';
+
+    if (cityQuery.length > 0) {
+        endString += '?q[city_cont]=' + cityQuery +
+            '&q[state_cont]=' + stateQuery;
+    } else {
+        endString += '?q[state_cont]=' + stateQuery;
+    }
+
+    return endString;
+}
 
 
 
 function getDataFromWeatherApi(callback) { //also pass in lat/long param from search result
+    
+
     var settings = {
         url: BASE_WEATHER_URL + '&q=' + $('.js-query').val(),
         dataType: 'json',
@@ -32,10 +46,11 @@ function getDataFromWeatherApi(callback) { //also pass in lat/long param from se
         success: callback
     };
 
-    console.log(activityDate);
-
     $.ajax(settings);
 }
+
+
+
 
 
 function formatDate(date) {
@@ -50,34 +65,22 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
-function getUserTarget() {
-    //retrieve the location the user wants to search
-    //use switch case??? for text boxes
-}
+
+// Render functions
 
 function displaySearchData(data) {
-    var resultElement = '';
     if (data.places.length > 0) {
         data.places.forEach(function(place) {
-            console.log(place.name + ", city " + place.city + ", state " + place.state);
 
-            // resultElement += '<div class="result">' +
-            //     '<p><div class="result-name">' + place.name + '</div>' +
-            //     '<div class="result-city">' + place.city + '</div>' +
-            //     // '<p class="result-city">' + place.city + '</p>' +
-            //     '<div class="result-state">' + place.state + '</div></p></div>';
-            // // '<p class="result-state">' + place.state + '</p>';
-
-            $('.js-search-results').append('<div class="result">' +
-                '<p><div class="result-name">' + place.name + '</div>' +
+            $('.js-search-results').append('<div class="result small">' +
+                '<div class="result-name">' + place.name + '</div>' +
                 '<div class="result-location">' + place.city + ', ' + place.state + '</div>' +
-                '</p></div>');
+                '</div>');
         });
     } else {
-        resultElement += '<p>no cities found</p>';
+        $('.js-search-results').append('<p>Sorry, no trails found</p>');
     }
 
-    //$('.js-search-results').html(resultElement);
 }
 
 
@@ -91,6 +94,8 @@ function displayWeatherData(latitude, longitude) {
 
 
 
+// Event Listeners
+
 function watchSubmit() {
     $('.js-search-form').submit(function(event) {
         event.preventDefault();
@@ -98,18 +103,58 @@ function watchSubmit() {
 
         activityDate = $('.js-date').val();
 
-        var query = $(this).find('.js-state').val();
-        getDataFromTrailApi(query, displaySearchData);
-        getDataFromWeatherApi(query, displayWeatherData)
+        var stateQuery = $(this).find('.js-state').val();
+        var cityQuery = $(this).find('.js-city').val();
+
+        getDataFromTrailApi(cityQuery, stateQuery, displaySearchData);
+        //getDataFromWeatherApi(query, displayWeatherData)
 
     });
 }
 
-$(function() {
+// function selectCity() {
+
+// $('.result').on('click', function() {
+//     event.preventDefault();
+//     $(this).addClass('.open');
+// });
+
+// $('.result').click(function(event) {
+//     event.preventDefault();
+//     $(this).addClass('.open');
+// });
+// }
+
+// $(document).ready(function(){
+//     $(document).on('click', '.small a', function(){
+//         $('.small').addClass('big');
+//         $('.small').removeClass('small');
+//     });
+//     $(document).on('click', '.big a', function(){
+//         $('.big').addClass('small');
+//         $('.big').removeClass('big');
+//     });
+// });
+
+
+$(document).ready(function(){
     var now = new Date();
     var date = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
 
     $('.js-date').val(date);
 
     watchSubmit();
+
+    // $(document).on("click", "div.result", function() {
+    //     $(this).addClass('.open');
+    // });
+
+    $(this).on('click', '.small', function(){
+        $('.small').addClass('big');
+        $('.small').removeClass('small');
+    });
+    $(this).on('click', '.big', function(){
+        $('.big').addClass('small');
+        $('.big').removeClass('big');
+    });
 });
