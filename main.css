@@ -16,23 +16,20 @@ body {
 
 .result-name {
 	width: 380px;
-	background-color: pink;
 }
 
 .result-location {
-	/*width: 200px;*/
-	background-color: orange;
 }
-
-/*.result-state {
-	width: 100px;
-	background-color: yellow;
-}*/
 
 /*.small {
 	background-color: blue;
 }*/
 
 .big {
-	background-color: red;
+	background-color: yellow;
+	height: 250px;
+}
+
+section {
+	display: block;
 }
