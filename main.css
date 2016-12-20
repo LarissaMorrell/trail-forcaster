@@ -11,25 +11,31 @@ body {
 
 .result-name, .result-location {
 	/*display: inline-block;*/
-	float: left;
+	/*float: left;*/
 }
 
 .result-name {
 	width: 380px;
 }
 
-.result-location {
-}
-
 .big {
-	background-color: yellow;
+	outline: red 1px solid;
 }
 
 .weather-details {
-	display: block;
-	margin-left: 50%;
+	/*display: block;*/
+/*	margin-left: 50%;*/
 	background-color: blue;
 	color: white;
+}
+
+.trail-details {
+	outline: solid blue 1px;
+	/*width: 50%;*/
+}
+
+.detail-label {
+	font-weight: bold;
 }
 
 section {
