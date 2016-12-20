@@ -67,9 +67,7 @@ function getDataFromWeatherApi(locObj, dateTense, endpoint, callback) {
         type: 'GET',
         success: callback
     };
-
     // console.log(dateTense + ' weather: ' + settings.url);
-
     $.ajax(settings);
 }
 
@@ -118,7 +116,6 @@ function displayTrailData(data) {
         findBestDescription(data) + '</p>' +
         '<p class="trail-directions"><span class="detail-label">Directions:</span> ' +
         findBestDirections(data) + '</p></div>');
-
 }
 
 
@@ -150,7 +147,6 @@ function findBestDescription(data) {
             longStr = data.places[i].description;
         }
     }
-
     if (longStr == 'null' || longStr.length == 0) {
         longStr = "Not available";
     }
@@ -161,13 +157,12 @@ function findBestDescription(data) {
 
 //display the previous 3 days of weather
 function displayHistoricWeatherData(data) {
-    var forecastDays = data.forecast.forecastday;
-
+    
+    var forecastDays = data.forecast.forecastday; 
+    
     for (var i = 0; i < forecastDays.length; i++) {
-        $('.weather-details').append('<p>Rainfall on' +
-            forecastDays[i].day.totalprecip_in + ' inches</p>');
+        $('.weather-details').append('<p>Rainfall: ' + forecastDays[i].day.totalprecip_in + ' inches</p>'); 
     }
-
 }
 
 //display the current day and next 3 days of weather
@@ -187,6 +182,8 @@ function expandResult(locObj) {
 
     //trail expanded information
     getDataFromTrailApi(getTrailEndpoints(locObj.data()), displayTrailData);
+
+    $('.big').append('<div class="weather-details"></div>');
 
     //weather 3 days ago
     var threeDaysAgo = new Date();
