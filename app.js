@@ -1,13 +1,18 @@
 var BASE_TRAIL_URL = 'https://trailapi-trailapi.p.mashape.com/';
 var BASE_WEATHER_URL = 'http://api.apixu.com/v1/';
 var activityDate;
+var now;
+var weather = new Object();
+
 //make an object for historic and forecasted data?
 
-function getDataFromTrailApi(callback) {
+
+function getDataFromTrailApi(endpoints, callback) {
+
     var data = {
-        url: BASE_TRAIL_URL + getEndpoints(), // The URL to the API. You can get this in the API page of the API you intend to consume
+        url: BASE_TRAIL_URL + endpoints,
         type: 'GET',
-        data: {}, // Additional parameters here
+        data: {},
         dataType: 'json',
         success: callback,
         error: function(err) {
@@ -24,7 +29,7 @@ function getDataFromTrailApi(callback) {
 
 
 
-function getEndpoints() {
+function getQueryEndpoints() {
     var endString = '';
     var city = $('.js-city').val();
     var state = $('.js-state').val();
@@ -39,9 +44,19 @@ function getEndpoints() {
     return endString;
 }
 
+function getTrailEndpoints(locObj) {
+    var endString = "";
+
+    endString += '?q[activities_activity_name_cont]=' + locObj.name +
+        '&q[state_cont]=' + locObj.state +
+        '&q[city_cont]=' + locObj.city;
+
+    return endString;
+}
 
 
-function getDataFromWeatherApi(locObj, dateTense, endpoint, callback) { //also pass in lat/long param from search result
+
+function getDataFromWeatherApi(locObj, dateTense, endpoint, callback) {
 
     var settings = {
         url: BASE_WEATHER_URL + dateTense +
@@ -53,32 +68,15 @@ function getDataFromWeatherApi(locObj, dateTense, endpoint, callback) { //also p
         success: callback
     };
 
-    console.log(dateTense + ' weather: ' + settings.url);
+    // console.log(dateTense + ' weather: ' + settings.url);
 
     $.ajax(settings);
 }
 
 
 
-// function setDateTense() {
-//     //convert the 2 string into a Date???
-//     //then compare and 
-//     var today = todaysDate;
-
-//     if (activityDate < today) {
-//         dateTense = 'history';
-//     } else if (activityDate == today) {
-//         dateTense = 'current';
-//     } else {
-//         dateTense = 'forecast';
-//     };
-// }
-
-
-
-function formatDate(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
+function formatDate(d) {
+    month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear();
 
@@ -88,20 +86,6 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
-// function todaysDate() {
-//     var today = new Date();
-//     var dd = today.getDate();
-//     var mm = today.getMonth() + 1; //January is 0!
-
-//     var yyyy = today.getFullYear();
-//     if (dd < 10) {
-//         dd = '0' + dd
-//     }
-//     if (mm < 10) {
-//         mm = '0' + mm
-//     }
-//     return yyyy + '-' + mm + '-' + dd;
-// }
 
 
 // Render functions
@@ -112,7 +96,8 @@ function displaySearchData(data) {
 
             $('.js-search-results').append('<div class="result small"' +
                 'data-lat="' + place.lat + '" data-lon="' + place.lon + '" ' +
-                'data-city="' + place.city + '" data-state="' + place.state + '">' +
+                'data-city="' + place.city + '" data-state="' + place.state + '"' +
+                'data-name="' + place.name + '">' +
                 '<div class="result-name">' + place.name + '</div>' +
                 '<div class="result-location">' + place.city + ', ' + place.state + '</div></div>');
         });
@@ -125,23 +110,53 @@ function displaySearchData(data) {
 
 
 
-// but how do I target what activity it is that was selected when API is called again??????
+/**Later write in the different activities in one location and filter out duplicates**/
 function displayTrailData(data) {
-    var trailObj = data.places.activities;
+    var trailObj = data.places[1];
 
-    //for every activity in the city    --- no there are multiple city objects....
-    // for (var x = 0; x < trailObj.length; x++) {
+    $('.big').append('<div class="trail-details"><span class="detail-label">Description:</span> ' +
+        findBestDescription(data) + '</p>' +
+        '<p class="trail-directions"><span class="detail-label">Directions:</span> ' +
+        findBestDirections(data) + '</p></div>');
 
-    //if the place id matches, then append ---> store place id in data???
-
-    var trailSection = '<div class="trail-details">Description: ' +
-        trailObj.description + '</p>' +
-        '<p>See more about this trail: <a href="' + trailObj.url + '>Click here!</a></p>' +
-        '</div>';
-    // }
-
-    return trailSection;
 }
+
+
+
+function findBestDirections(data) {
+    var longStr = "";
+    for (var i = 0; i < data.places.length; i++) {
+        try {
+            if (data.places[i].directions == null) {
+                continue;
+            }
+            if (data.places[i].directions.length > longStr.length) {
+                longStr = data.places[i].directions;
+            }
+        } catch (err) {
+            continue;
+        }
+    }
+    return longStr;
+}
+
+function findBestDescription(data) {
+    var longStr = "";
+    for (var i = 0; i < data.places.length; i++) {
+        if (data.places[i].description == null) {
+            continue;
+        }
+        if (data.places[i].description.length > longStr.length) {
+            longStr = data.places[i].description;
+        }
+    }
+
+    if (longStr == 'null' || longStr.length == 0) {
+        longStr = "Not available";
+    }
+    return longStr;
+}
+
 
 
 //display the previous 3 days of weather
@@ -149,8 +164,10 @@ function displayHistoricWeatherData(data) {
     var forecastDays = data.forecast.forecastday;
 
     for (var i = 0; i < forecastDays.length; i++) {
-        $('.big').append('<p>Rainfall: ' + forecastDays[i].day.totalprecip_in + ' inches</p>');
+        $('.weather-details').append('<p>Rainfall on' +
+            forecastDays[i].day.totalprecip_in + ' inches</p>');
     }
+
 }
 
 //display the current day and next 3 days of weather
@@ -159,23 +176,34 @@ function displayWeatherData(data) {
 
     //display the last 3 days rainfall/snow/temp
     for (var i = 0; i < forecastDays.length; i++) {
-        $('.big').append("<p>Working... " + forecastDays[i].day.maxtemp_f + "degrees</p>");
+        $('.weather-details').append("<p>Working... " +
+            forecastDays[i].day.maxtemp_f + "degrees</p>");
     }
     //display the next 4 days temp/rainfall/snow/wind
 
 }
 
 function expandResult(locObj) {
-    $('.big').append('<section>' +
-        // getDataFromTrailApi(locObj.city, locObj.state, displayTrailData) +
-        '<div class="weather-details"></div></section>');
 
-    getDataFromTrailApi($(this).data('city'), $(this).data('state'), displayTrailData);
+    //trail expanded information
+    getDataFromTrailApi(getTrailEndpoints(locObj.data()), displayTrailData);
 
-    //need help getting the date 3 days prior to the current date!!!!
-    getDataFromWeatherApi(locObj.data(), 'history', '&days=3&dt=2016-12-15', displayHistoricWeatherData);
-    // getDataFromWeatherApi(locObj.data(), 'history', '&dt=2016-12-16', displayHistoricWeatherData);
-    // getDataFromWeatherApi(locObj.data(), 'history', '&dt=2016-12-17', displayHistoricWeatherData);
+    //weather 3 days ago
+    var threeDaysAgo = new Date();
+    threeDaysAgo.setDate(now.getDate() - 3);
+    getDataFromWeatherApi(locObj.data(), 'history', '&dt=' + formatDate(threeDaysAgo), displayHistoricWeatherData);
+
+    //weather 2 days ago
+    var twoDaysAgo = new Date();
+    twoDaysAgo.setDate(now.getDate() - 2);
+    getDataFromWeatherApi(locObj.data(), 'history', '&dt=' + formatDate(twoDaysAgo), displayHistoricWeatherData);
+
+    //weather yesterday
+    var yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    getDataFromWeatherApi(locObj.data(), 'history', '&dt=' + formatDate(yesterday), displayHistoricWeatherData);
+
+    //curent weather and forecast for next 3 days
     getDataFromWeatherApi(locObj.data(), 'forecast', '&days=3', displayWeatherData);
 }
 
@@ -190,28 +218,42 @@ function watchSubmit() {
 
         activityDate = $('.js-date').val();
 
-        getDataFromTrailApi(displaySearchData);
+        getDataFromTrailApi(getQueryEndpoints(), displaySearchData);
     });
 }
 
 
 
 $(document).ready(function() {
-    var now = new Date();
-    var date = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
-    console.log(typeof date + ' is the date');
+    now = new Date();
+    var dateStr = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+
     //set the value of element to today's date on load
-    $('.js-date').val(date);
+    $('.js-date').val(dateStr);
+
+
+    /*
+    Also for tomorrow, there is a glitch when the user has 2 results 
+    selected, and then clicks off of 1. The result is still yellow, but no 
+    longer includes the weather data. Check what $(objects) are being selected
+
+
+
+    How does the weather history API access multiple days of historic data???
+    */
 
 
     watchSubmit();
 
     //Expand the result
     $(document).on('click', '.small', function(event) {
-        $(this).addClass('big');
-        $(this).removeClass('small');
 
-        expandResult($(this));
+        //if result is not already expanded
+        if (!$('.result').hasClass('big')) {
+            $(this).addClass('big');
+            $(this).removeClass('small');
+            expandResult($(this));
+        }
     });
 
 
