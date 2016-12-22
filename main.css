@@ -1,44 +1,99 @@
-body {
-  padding-top: 25px;
-  margin: 0 15% 0 15%;
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+
+html {
+    background-image: url(hiker-background.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: right bottom;
+    background-attachment: fixed;
+    top: 0;
+    left: 0;
+    /* Preserve aspet ratio */
+    min-width: 100%;
+    min-height: 100%;
+}
+
+main {
+    padding-top: 25px;
+    margin: 0 15% 0 15%;
+}
+
+h1, h3 {
+    text-shadow: 3px 3px 4px white;
+    font-weight: bold;
+    text-align: center;
+}
+
+h1 {
+    font-size: 40px;
+    margin-bottom: 20px;	
+}
+
+h3 {
+    font-size: 20px;
+    margin: 0px auto 20px auto;
+}
+
+label {
+	display: block;
+	margin-bottom: 18px;
+}
+
+/*how to get the form and all its elements to center??*/
+/*form {  
+    margin: auto;
+    width: 50%;
+    padding: 10px;
+}*/
+
+input[type=text],
+input[type=date],
+button,
+select {
+    box-sizing: border-box;
+    height: 40px;
+    border: 1px solid #3d3d3d;
+    /* dark gray */
+    border-radius: 5px;
+    background-color: white;
+}
+
+input[type=text],
+input[type=date],
+{
+    padding-left: 8px;
+}
+
+button {
+    background-color: #d3d3d3;
+    /* light gray */
+    width: 90px;
+}
+
+
+.return-result {
+    margin-top: 150px;
+    /*overflow: hidden;*/
 }
 
 .result {
-    border: 1px solid black;
-    margin: 10px;
+    border: 1px solid #3d3d3d;
+    /* dark gray */
+    background-color: rgba(255, 255, 255, .7);
+    border-radius: 5px;
     min-height: 50px;
-}
-
-.result-name, .result-location {
-	/*display: inline-block;*/
-	/*float: left;*/
+    margin: 10px;
+    padding: 5px 20px 5px 20px;
 }
 
 .result-name {
-	width: 380px;
+    font-style: bold;
 }
 
-.big {
-	outline: red 1px solid;
-}
-
-.weather-details {
-	/*display: block;*/
-/*	margin-left: 50%;*/
-	background-color: blue;
-	color: white;
-}
-
-.trail-details {
-	outline: solid blue 1px;
-	/*width: 50%;*/
-}
-
-.detail-label {
-	font-weight: bold;
-}
-
-section {
-	display: block;
-	/*float: right;*/
+.weather-details .trail-details {
+    outline: solid #d3d3d3 1px;
+    /*light gray*/
+    border-radius: 5px;
 }

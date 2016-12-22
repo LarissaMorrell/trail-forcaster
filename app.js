@@ -1,9 +1,8 @@
 var BASE_TRAIL_URL = 'https://trailapi-trailapi.p.mashape.com/';
 var BASE_WEATHER_URL = 'http://api.apixu.com/v1/';
-var activityDate;
+var Weather = new Object(); //contains historic and forecasted weather data
 var now;
 var yesterday;
-var Weather = new Object(); //contains historic and forecasted weather data
 
 
 function getDataFromTrailApi(endpoints, callback) {
@@ -103,15 +102,12 @@ function formatDate(d) {
 function findBestDirections(data) {
     var longStr = "";
     for (var i = 0; i < data.places.length; i++) {
-        try {
-            if (data.places[i].directions == null) {
-                continue;
-            }
-            if (data.places[i].directions.length > longStr.length) {
-                longStr = data.places[i].directions;
-            }
-        } catch (err) {
+
+        if (data.places[i].directions == null) {
             continue;
+        }
+        if (data.places[i].directions.length > longStr.length) {
+            longStr = data.places[i].directions;
         }
     }
     return longStr;
@@ -138,32 +134,39 @@ function findBestDescription(data) {
 //set the previous 3 days of weather
 function setHistoricWeatherData(data) {
 
-    try {
-        var forecastDays = data.forecast.forecastday;
-        var pastDay = data.forecast.forecastday[0].day;
+    if (data.hasOwnProperty('error')) {
+        Weather.error = true;
+        return;
+    };
 
-        //API will only return one day for each call, 
-        //even though it is in an array
-        var date = forecastDays[0].date;
-        Weather[date] = {
-            totalprecip_in: pastDay.totalprecip_in,
-            avgtemp_f: pastDay.avgtemp_f,
-            icon: pastDay.condition.icon
-        };
+    var forecastDays = data.forecast.forecastday;
+    var pastDay = data.forecast.forecastday[0].day;
 
-        //if the date is yesterday, add that property
-        if (date == formatDate(yesterday)) {
-            Weather[date].dateTense = 'yesterday';
-        };
-    } catch (err) {
+    //API will only return one day for each call, 
+    //even though it is in an array
+    var date = forecastDays[0].date;
+    Weather[date] = {
+        totalprecip_in: pastDay.totalprecip_in,
+        avgtemp_f: pastDay.avgtemp_f,
+        icon: pastDay.condition.icon
+    };
 
-    }
+    //if the date is yesterday, add that property
+    if (date == formatDate(yesterday)) {
+        Weather[date].dateTense = 'Yesterday';
+    };
+
+    // console.log(Weather);
 }
 
 
 
 //set the current day and next 3 days of weather
 function setForecastData(data) {
+    if (data.hasOwnProperty('error')) {
+        Weather.error = true;
+        return;
+    };
 
     //FIX TOMORROW. Icon and condition are not printing
     //and for some reason the last day in the object is not being built
@@ -181,14 +184,18 @@ function setForecastData(data) {
             condition: forecastDays[i].day.condition.text,
             windSpeed: forecastDays[i].day.maxwind_mph
         };
+
+        if (i == 1) {
+            Weather[forecastedDate].dateTense = "Tomorrow";
+        }
+
+        // console.log(Weather);
     };
 
     //add additional properties for today
-    Weather[formatDate(now)].dateTense = "today";
+    Weather[formatDate(now)].dateTense = "Today";
     Weather[formatDate(now)].humidity = data.current.humidity;
     Weather[formatDate(now)].currentlyfeelsLike = data.current.feelslike_f;
-
-    console.log(Weather);
 }
 
 
@@ -202,6 +209,8 @@ function displaySearchData(data) {
                 'data-lat="' + place.lat + '" data-lon="' + place.lon + '" ' +
                 'data-city="' + place.city + '" data-state="' + place.state + '"' +
                 'data-name="' + place.name + '">' +
+                // '<header class="result-header"><div class="result-name">' + place.name + '</div>' +
+                // '<div class="result-location">' + place.city + ', ' + place.state + '</div></header></div>');
                 '<div class="result-name">' + place.name + '</div>' +
                 '<div class="result-location">' + place.city + ', ' + place.state + '</div></div>');
         });
@@ -216,7 +225,7 @@ function displaySearchData(data) {
 function displayTrailData(data) {
     var trailObj = data.places[1];
 
-    $('.big').append('<div class="trail-details"><span class="detail-label">' +
+    $('.big').append('<p class="trail-details"><span class="detail-label">' +
         'Description:</span> ' + findBestDescription(data) + '</p>' +
         '<p class="trail-directions"><span class="detail-label">Directions:</span> ' +
         findBestDirections(data) + '</p></div>');
@@ -226,26 +235,39 @@ function displayTrailData(data) {
 function displayWeatherData(threeDaysAgo) {
 
     var locDate = new Date(threeDaysAgo);
+
     // locDate.setDate(threeDaysAgo);
 
-    console.log(Weather);
+    if(Weather)
+
+
+    var dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     //for each day...
     for (var i = 0; i < Object.keys(Weather).length; i++) {
-
-
+        var thisDaysWeather = Weather[formatDate(locDate)];
 
         //add the icon to the page
-        var iconUrl = '<img src=http:' + Weather[formatDate(locDate)].icon + '>';
-        console.log(iconUrl);
-
-            $('.weather-details').append(iconUrl + '<br/>');
-
-        //add the date formatted <day of week>
+        var iconUrl = '<img class="" src=http:' + thisDaysWeather.icon + '>';
 
         var elemStr = iconUrl;
 
+        //Is it yesterday, today or tomorrow? 
+        if ('dateTense' in thisDaysWeather) {
+            elemStr += '<div class="">' + thisDaysWeather.dateTense + '</div>';
+        } else {
+            elemStr += '<div class="">' + dayOfWeek[locDate.getDay()] + '</div>';
+        }
+
+        // elemStr += '<details><summary>More weather info...</summary><ul><li>' +
+
+
+        //     '</details>';
+
+
+
         //add a ul with the avg temp and the precip
+        $('.weather-details').append(elemStr);
 
         //move on to the next day
         locDate.setDate(locDate.getDate() + 1);
@@ -281,8 +303,14 @@ function expandResult(locObj) {
     //Help!! why is the traildata after the weather data?
 
     //Then add the weather to the screen
-    $('.big').append('<div class="weather-details">Weather: </div>');
-    displayWeatherData(threeDaysAgo);
+    $('.big').append('<section class="weather-details"><header>Weather:</header></section>');
+
+    if (Weather.hasOwnProperty('error')) {
+        $('.weather-details').text('Sorry. No weather information available.');
+
+    } else {
+        displayWeatherData(threeDaysAgo);
+    };
 }
 
 
@@ -294,7 +322,7 @@ function watchSubmit() {
         event.preventDefault();
         $('.js-search-results').empty(); //any previous results
 
-        activityDate = $('.js-date').val();
+        var activityDate = $('.js-date').val();
 
         getDataFromTrailApi(getQueryEndpoints(), displaySearchData);
     });
@@ -310,15 +338,6 @@ $(document).ready(function() {
     $('.js-date').val(dateStr);
 
 
-    /*
-    Also for tomorrow, there is a glitch when the user has 2 results 
-    selected, and then clicks off of 1. The result is still yellow, but no 
-    longer includes the weather data. Check what $(objects) are being selected
-
-
-
-    How does the weather history API access multiple days of historic data???
-    */
 
 
     watchSubmit();
@@ -337,6 +356,7 @@ $(document).ready(function() {
 
 
     //Collapse the result
+    // $(document).on('click', '.result-header', function() {
     $(document).on('click', '.big', function() {
         $('.result-location').nextAll().remove();
 

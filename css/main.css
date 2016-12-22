@@ -1,0 +1,56 @@
+/*body {
+    padding-top: 25px;
+    margin: 0 15% 0 15%;
+}*/
+
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    background: url(washington.jpg) no-repeat;
+    background-size: cover;
+    padding-top: 25px;
+    margin: 0 15% 0 15%;
+}
+
+.result {
+    border: 1px solid black;
+    margin: 10px;
+    min-height: 50px;
+}
+
+.result-name,
+.result-location {
+    /*display: inline-block;*/
+    /*float: left;*/
+}
+
+.result-name {
+    width: 380px;
+}
+
+header .result-name {
+    background: yellow;
+}
+
+.big {
+    outline: red 1px solid;
+}
+
+.weather-details {
+    outline: solid red 1px;
+}
+
+.trail-details {
+    outline: solid blue 1px;
+    /*width: 50%;*/
+}
+
+.detail-label {
+    font-weight: bold;
+}
+
+section {
+    display: block;
+}
