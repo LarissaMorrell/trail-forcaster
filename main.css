@@ -69,12 +69,12 @@ input[type=date],
 button {
     background-color: #d3d3d3;
     /* light gray */
-    width: 90px;
+    width: 130px;
 }
 
 
-.return-result {
-    margin-top: 150px;
+.search-result {
+    margin-top: 15px;
     /*overflow: hidden;*/
 }
 
@@ -88,12 +88,23 @@ button {
     padding: 5px 20px 5px 20px;
 }
 
+.small p,
+.small section {
+	display: none;
+}
+
 .result-name {
-    font-style: bold;
+    font-size: 20px;
+    padding: 5px 0px 5px 0px;
 }
 
 .weather-details .trail-details {
     outline: solid #d3d3d3 1px;
     /*light gray*/
     border-radius: 5px;
+}
+
+/* ----------------------------------------- */
+.search-header-js {
+	background: yellow;
 }
