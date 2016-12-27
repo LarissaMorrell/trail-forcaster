@@ -1,5 +1,6 @@
 * {
     font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
 }
 
 html {
@@ -20,7 +21,8 @@ main {
     margin: 0 15% 0 15%;
 }
 
-h1, h3 {
+h1,
+h3 {
     text-shadow: 3px 3px 4px white;
     font-weight: bold;
     text-align: center;
@@ -28,7 +30,7 @@ h1, h3 {
 
 h1 {
     font-size: 40px;
-    margin-bottom: 20px;	
+    margin-bottom: 20px;
 }
 
 h3 {
@@ -37,16 +39,9 @@ h3 {
 }
 
 label {
-	display: block;
-	margin-bottom: 18px;
+    display: block;
+    margin-bottom: 18px;
 }
-
-/*how to get the form and all its elements to center??*/
-/*form {  
-    margin: auto;
-    width: 50%;
-    padding: 10px;
-}*/
 
 input[type=text],
 input[type=date],
@@ -73,6 +68,11 @@ button {
 }
 
 
+/*.js-forecast,
+.js-history {
+    display: inline;
+}*/
+
 .search-result {
     margin-top: 15px;
     /*overflow: hidden;*/
@@ -88,14 +88,29 @@ button {
     padding: 5px 20px 5px 20px;
 }
 
+/*.result span {
+    font-size: 18px;
+    padding-right: 5px;
+}*/
+
+main .row {
+    margin: 5px 5px 20px 5px;
+}
+
 .small p,
 .small section {
-	display: none;
+    display: none;
 }
 
 .result-name {
     font-size: 20px;
     padding: 5px 0px 5px 0px;
+}
+
+.current-weather {
+    display: block;
+    margin: 0 auto;
+    max-width: 200px;
 }
 
 .weather-details .trail-details {
@@ -104,7 +119,17 @@ button {
     border-radius: 5px;
 }
 
-/* ----------------------------------------- */
-.search-header-js {
-	background: yellow;
+.weather-details p {
+    text-align: center;
+    margin: 0px;
+}
+
+.weather-details img {
+    display: block;
+    margin: 0 auto;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 10px;
 }

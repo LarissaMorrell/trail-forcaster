@@ -1,11 +1,12 @@
 var BASE_TRAIL_URL = 'https://trailapi-trailapi.p.mashape.com/';
 var BASE_WEATHER_URL = 'http://api.apixu.com/v1/';
-// var Weather = new Object(); //contains historic and forecasted weather data
 var weatherError = false;
 var today;
 var relativeDayName;
+var selectedLocation;
 
-//pasted
+
+
 function getDataFromTrailApi(callback) {
 
     var data = {
@@ -28,7 +29,6 @@ function getDataFromTrailApi(callback) {
 
 
 
-//pasted
 function getQueryEndpoints() {
     var endString = '';
     var city = $('.js-city').val();
@@ -45,19 +45,14 @@ function getQueryEndpoints() {
 }
 
 function getTrailEndpoints(locObj) {
-    var endString = "";
-
-    endString += '?q[activities_activity_name_cont]=' + locObj.name +
+    return '?q[activities_activity_name_cont]=' + locObj.name +
         '&q[state_cont]=' + locObj.state +
         '&q[city_cont]=' + locObj.city;
-
-    return endString;
 }
 
 
 
 function getDataFromWeatherApi(locObj, apiType, endpoint, callback) {
-
     var location = '';
 
     //when there is an invalid lat/lon
@@ -76,24 +71,24 @@ function getDataFromWeatherApi(locObj, apiType, endpoint, callback) {
         type: 'GET',
         success: callback
     };
-    // console.log(apiType + ' weather: ' + settings.url);
+    console.log(apiType + ' weather: ' + settings.url);
     $.ajax(settings);
 }
 
 
 
 function formatDateForAPI(d) {
-
     var month, day, year;
     month = (d.getMonth() + 1);
     day = d.getDate();
     year = d.getFullYear();
-
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
 }
+
+
 
 //takes in a date string with format YYYY-MM-DD
 function formatDateForJS(dateStr) {
@@ -108,33 +103,35 @@ function formatDateForJS(dateStr) {
     if (day.length < 2) {
         day = '0' + d[2];
     }
-
     return [month, day, year].join('/');
 }
 
 
-function findBestDirections(data) {
-    var longStr = "";
-    for (var i = 0; i < data.places.length; i++) {
 
-        if (data.places[i].directions == null) {
+function findBestDirections(activities) {
+    var longStr = "";
+    for (var i = 0; i < activities.length; i++) {
+
+        if (activities[i].directions == null) {
             continue;
         }
-        if (data.places[i].directions.length > longStr.length) {
-            longStr = data.places[i].directions;
+        if (activities[i].directions.length > longStr.length) {
+            longStr = activities[i].directions;
         }
     }
     return longStr;
 }
 
-function findBestDescription(data) {
+
+
+function findBestDescription(activities) {
     var longStr = "";
-    for (var i = 0; i < data.places.length; i++) {
-        if (data.places[i].description == null) {
+    for (var i = 0; i < activities.length; i++) {
+        if (activities[i].description == null) {
             continue;
         }
-        if (data.places[i].description.length > longStr.length) {
-            longStr = data.places[i].description;
+        if (activities[i].description.length > longStr.length) {
+            longStr = activities[i].description;
         }
     }
     if (longStr == 'null' || longStr.length == 0) {
@@ -142,6 +139,7 @@ function findBestDescription(data) {
     }
     return longStr;
 }
+
 
 
 function dayOfWeekStr(data, thisDate) {
@@ -156,15 +154,11 @@ function dayOfWeekStr(data, thisDate) {
     } else if (thisDate == relativeDayName[2].dateStr) { //tomorrow
         day += relativeDayName[2].dayStr;
     } else {
-        //use dayOfWeek
         var dateType = new Date(formatDateForJS(thisDate));
         day += dayOfWeek[dateType.getDay()];
     }
-
     return day;
 }
-
-
 
 
 
@@ -178,17 +172,12 @@ function displaySearchData(data) {
                 'data-lat="' + place.lat + '" data-lon="' + place.lon + '" ' +
                 'data-city="' + place.city + '" data-state="' + place.state + '"' +
                 'data-name="' + place.name + '">' +
-                // '<header class="result-header"><div class="result-name">' + place.name + '</div>' +
-                // '<div class="result-location">' + place.city + ', ' + place.state + '</div></header></div>');
                 '<div class="result-name">' + place.name + '</div>' +
                 '<div class="result-location">' + place.city + ', ' + place.state + '</div>' +
                 '<p class="trail-details"><span class="detail-label">' +
-                'Description:</span> ' + findBestDescription(data) + '</p>' +
+                'Description:</span> ' + findBestDescription(place.activities) + '</p>' +
                 '<p class="trail-directions"><span class="detail-label">Directions:</span> ' +
-                findBestDirections(data) + '</p>' +
-                //Add the weather section
-                // '<section class="weather-details"><p>Weather for this trail:</p></section></div></div>');
-                '</div></div>');
+                place.directions + '</p></div></div>');
 
         });
     } else {
@@ -207,13 +196,14 @@ function displayHistWeatherData(data) {
     };
 
     var histDay = data.forecast.forecastday[0];
-    var weatherStr = '<p>' + dayOfWeekStr(data, histDay.date) + '</p>' +
+    var weatherStr = '<div class="col"><p>' + dayOfWeekStr(data, histDay.date) + '</p>' +
         '<img src="http:' + histDay.day.condition.icon + '">' +
         '<p>' + histDay.day.condition.text + '</p>' +
-        '<ul><li><span>Precipitation:</span> ' + histDay.day.totalprecip_in + '</li>' +
-        '<li><span>Temp:</span> ' + histDay.day.avgtemp_f + '</li></ul>';
+        '<ul><li><span>Precipitation:</span> ' + histDay.day.totalprecip_in + '"</li>' +
+        '<li><span>Avg Temp:</span> ' + Math.round(histDay.day.avgtemp_f) + '&deg;F</li></ul><div>';
 
-    $('.weather-details').append(weatherStr);
+        //HELP! append to THIS weather-details... not all
+    selectedLocation.find('.js-history').append(weatherStr);
 }
 
 
@@ -227,67 +217,47 @@ function displayForecastData(data) {
     };
 
     var todaysForecast = data.forecast.forecastday[0].day;
-    var todaysWeather = '<div class = "current-weather">' +
+    var todaysWeather = //'<div class = "current-weather">' +
         '<p>' + dayOfWeekStr(data, data.forecast.forecastday[0].date) + '</p>' +
-        '<p><span>Currently: ' + data.current.temp_f + '</p>' +
+        '<p><span>Currently:</span> ' + Math.round(data.current.temp_f) + '&deg;F</p>' +
         '<img src="http:' + todaysForecast.condition.icon + '">' +
         '<p>' + todaysForecast.condition.text + '</p>' +
-        '<ul><li><span>High:</span> ' + todaysForecast.maxtemp_f + '</li>' +
-        '<li><span>Feels Like:</span ' + todaysForecast.feelslike_f + '</li>' +
-        '<li><span>Low:</span> ' + todaysForecast.mintemp_f + '</li>' +
-        '<li><span>Humidity:</span> ' + data.current.humidity + '</li>' +
-        '<li><span>Precipitation:</span> ' + todaysForecast.totalprecip_in + '</li>' +
-        '<li><span>Wind:</span> ' + data.current.wind_mph + ' mph</li></ul></div>';
+        '<ul><li><span>High:</span> ' + Math.round(todaysForecast.maxtemp_f) + '&deg;F</li>' +
+        '<li><span>Feels Like:</span ' + Math.round(todaysForecast.feelslike_f) + '&deg;F</li>' +
+        '<li><span>Low:</span> ' + Math.round(todaysForecast.mintemp_f) + '&deg;F</li>' +
+        '<li><span>Humidity:</span> ' + data.current.humidity + '%</li>' +
+        '<li><span>Precipitation:</span> ' + todaysForecast.totalprecip_in + '"</li>' +
+        '<li><span>Wind:</span> ' + data.current.wind_mph + ' mph</li></ul>';
 
-    $('.weather-details').append(todaysWeather);
+        //HELP! append to THIS weather-details... not all
+    $('.current-weather').append(todaysWeather);
 
 
     var forecastDays = data.forecast.forecastday
     var forecastWeather = '';
 
-    console.log(forecastDays.length + ' is how many forecasted days');
     for (var i = 1; i < forecastDays.length; i++) {
-        forecastWeather = '<p>' + dayOfWeekStr(data, forecastDays[i].date) + '</p>' +
+        forecastWeather += '<div class="col"><p>' + dayOfWeekStr(data, forecastDays[i].date) + '</p>' +
             '<img src="http:' + forecastDays[i].day.condition.icon + '">' +
             '<p>' + forecastDays[i].day.condition.text + '</p>' +
-            '<ul><li><span>High:</span> ' + forecastDays[i].day.maxtemp_f + '</li>' +
-            '<li><span>Low:</span> ' + forecastDays[i].day.mintemp_f + '</li>' +
-            '<li><span>Precipitation:</span> ' + forecastDays[i].day.totalprecip_in + '</li>' +
-            '<li><span>Wind:</span> ' + forecastDays[i].day.maxwind_mph + ' mph</li></ul>';
+            '<ul><li><span>High:</span> ' + Math.round(forecastDays[i].day.maxtemp_f) + '&deg;F</li>' +
+            '<li><span>Low:</span> ' + Math.round(forecastDays[i].day.mintemp_f) + '&deg;F</li>' +
+            '<li><span>Precipitation:</span> ' + forecastDays[i].day.totalprecip_in + '"</li>' +
+            '<li><span>Wind:</span> ' + forecastDays[i].day.maxwind_mph + ' mph</li></ul></div>';
     };
     console.log(forecastWeather);
-    $('.weather-details').append(forecastWeather);
-
-
-    //     Weather[forecastedDate] = {
-    //         totalprecip_in: forecastDays[i].day.totalprecip_in,
-    //         maxtemp_f: forecastDays[i].day.maxtemp_f,
-    //         mintemp_f: forecastDays[i].day.mintemp_f,
-    //         avgtemp_f: forecastDays[i].day.avgtemp_f,
-    //         icon: forecastDays[i].day.condition.icon,
-    //         condition: forecastDays[i].day.condition.text,
-    //         windSpeed: forecastDays[i].day.maxwind_mph
-    //     };
-
-    //     if (i == 1) {
-    //         Weather[forecastedDate].dateTense = "Tomorrow";
-    //     }
-
-    // console.log(Weather);
-    // };
-
-    //add additional properties for today
-    // Weather[formatDateForAPI(today)].dateTense = "Today";
-    // Weather[formatDateForAPI(today)].humidity = data.current.humidity;
-    // Weather[formatDateForAPI(today)].currentlyfeelsLike = data.current.feelslike_f;
+    $('.js-forecast').append(forecastWeather);
 }
 
 
 
 function getWeatherData(locObj) {
+    selectedLocation = locObj;
 
-    //Then add the weather to the screen
-    $('.big').append('<section class="weather-details"><header>Weather:</header></section>');
+    locObj.append('<section class="weather-details"><header>Weather:</header>' + 
+        '<div class="current-weather"></div>' +
+        '<div class="row"><div class="js-history"></div></div>' + 
+        '<div class="row"><div class="js-forecast"></div></div></section>');
 
     //HELP!!! need promises??? to make sure that they finish in the right order
 
@@ -303,12 +273,12 @@ function getWeatherData(locObj) {
 
     //weather yesterday
     getDataFromWeatherApi(locObj.data(), 'history', '&dt=' + relativeDayName[0].dateStr, displayHistWeatherData);
-
+    
     //curent weather and forecast for next 4 days (including today)
     getDataFromWeatherApi(locObj.data(), 'forecast', '&days=4', displayForecastData);
 
-
-    // HELP!!! Still need to figure out how to make it wait before executing this code
+    // HELP!!! this is not showing after clicking the first time. Then it shows up
+    //each time later on ALL other weather details
     if (weatherError) {
         locObj.find($('.weather-details')).text('Sorry. No weather information available.');
         weatherError = false; //reset
@@ -318,7 +288,6 @@ function getWeatherData(locObj) {
 
 
 // Event Listeners
-//pasted
 function watchSubmit() {
     $('.js-search-form').submit(function(event) {
         event.preventDefault();
@@ -330,7 +299,7 @@ function watchSubmit() {
 }
 
 
-//pasted
+
 $(document).ready(function() {
 
     today = new Date();
@@ -344,10 +313,7 @@ $(document).ready(function() {
         { dayStr: 'Tomorrow', dateStr: formatDateForAPI(tomorrow) }
     ];
 
-
-    // relativeDayName = [formatDateForAPI(yesterday), formatDateForAPI(today), formatDateForAPI(tomorrow)];
     watchSubmit();
-
 
     //Expand the result
     $(document).on('click', '.small', function(event) {
@@ -357,7 +323,6 @@ $(document).ready(function() {
             $(this).removeClass('small');
 
         } else {
-
             //if result is not already expanded
             if (!$('.result').hasClass('big')) {
                 $(this).addClass('big');
