@@ -1,5 +1,5 @@
 var BASE_TRAIL_URL = 'https://trailapi-trailapi.p.mashape.com/';
-var BASE_WEATHER_URL = 'http://api.apixu.com/v1/';
+var BASE_WEATHER_URL = 'https://api.apixu.com/v1/';
 var weatherError = false;
 var today;
 var relativeDayName;
