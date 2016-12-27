@@ -11,7 +11,7 @@ html {
     background-attachment: fixed;
     top: 0;
     left: 0;
-    /* Preserve aspet ratio */
+    /* Preserve aspect ratio */
     min-width: 100%;
     min-height: 100%;
 }
@@ -62,20 +62,26 @@ input[type=date],
 }
 
 button {
-    background-color: #d3d3d3;
-    /* light gray */
-    width: 130px;
+    border: 0;
+    background: #0895dd;
+    border-radius: 4px;
+    box-shadow: 0 5px 0 #006599;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    margin: 0;
+    outline: 0;
+    padding: 12px 20px;
+    transition: all .1s linear;
 }
 
-
-/*.js-forecast,
-.js-history {
-    display: inline;
-}*/
+button:active {
+    box-shadow: 0 2px 0 #006599;
+    transform: translateY(3px);
+}
 
 .search-result {
     margin-top: 15px;
-    /*overflow: hidden;*/
 }
 
 .result {
@@ -88,13 +94,8 @@ button {
     padding: 5px 20px 5px 20px;
 }
 
-/*.result span {
-    font-size: 18px;
-    padding-right: 5px;
-}*/
-
-main .row {
-    margin: 5px 5px 20px 5px;
+.small:hover {
+    background-color: rgba(232, 249, 236, 0.7);
 }
 
 .small p,
@@ -107,9 +108,16 @@ main .row {
     padding: 5px 0px 5px 0px;
 }
 
-.current-weather {
+h4,
+.current-weather,
+.hist-weather,
+.forecast-weather,
+.weather-details img {
     display: block;
     margin: 0 auto;
+}
+
+.current-weather {
     max-width: 200px;
 }
 
@@ -122,11 +130,6 @@ main .row {
 .weather-details p {
     text-align: center;
     margin: 0px;
-}
-
-.weather-details img {
-    display: block;
-    margin: 0 auto;
 }
 
 ul {

@@ -111,7 +111,6 @@ function formatDateForJS(dateStr) {
 function findBestDirections(activities) {
     var longStr = "";
     for (var i = 0; i < activities.length; i++) {
-
         if (activities[i].directions == null) {
             continue;
         }
@@ -202,7 +201,6 @@ function displayHistWeatherData(data) {
         '<ul><li><span>Precipitation:</span> ' + histDay.day.totalprecip_in + '"</li>' +
         '<li><span>Avg Temp:</span> ' + Math.round(histDay.day.avgtemp_f) + '&deg;F</li></ul><div>';
 
-        //HELP! append to THIS weather-details... not all
     selectedLocation.find('.js-history').append(weatherStr);
 }
 
@@ -217,19 +215,18 @@ function displayForecastData(data) {
     };
 
     var todaysForecast = data.forecast.forecastday[0].day;
-    var todaysWeather = //'<div class = "current-weather">' +
+    var todaysWeather =
         '<p>' + dayOfWeekStr(data, data.forecast.forecastday[0].date) + '</p>' +
         '<p><span>Currently:</span> ' + Math.round(data.current.temp_f) + '&deg;F</p>' +
         '<img src="http:' + todaysForecast.condition.icon + '">' +
         '<p>' + todaysForecast.condition.text + '</p>' +
         '<ul><li><span>High:</span> ' + Math.round(todaysForecast.maxtemp_f) + '&deg;F</li>' +
-        '<li><span>Feels Like:</span ' + Math.round(todaysForecast.feelslike_f) + '&deg;F</li>' +
+        // '<li><span>Feels Like:</span ' + Math.round(todaysForecast.feelslike_f) + '&deg;F</li>' +
         '<li><span>Low:</span> ' + Math.round(todaysForecast.mintemp_f) + '&deg;F</li>' +
         '<li><span>Humidity:</span> ' + data.current.humidity + '%</li>' +
         '<li><span>Precipitation:</span> ' + todaysForecast.totalprecip_in + '"</li>' +
         '<li><span>Wind:</span> ' + data.current.wind_mph + ' mph</li></ul>';
 
-        //HELP! append to THIS weather-details... not all
     $('.current-weather').append(todaysWeather);
 
 
@@ -254,12 +251,12 @@ function displayForecastData(data) {
 function getWeatherData(locObj) {
     selectedLocation = locObj;
 
-    locObj.append('<section class="weather-details"><header>Weather:</header>' + 
+    locObj.append('<section class="weather-details"><header>Weather for this trail:</header>' + 
         '<div class="current-weather"></div>' +
-        '<div class="row"><div class="js-history"></div></div>' + 
-        '<div class="row"><div class="js-forecast"></div></div></section>');
-
-    //HELP!!! need promises??? to make sure that they finish in the right order
+        //'<h4>Will it be muddy? This is the weather for the last 3 days</h4>' +
+        '<div class="row"><div class="js-history hist-weather"></div></div>' + 
+        //'<h4>Here\'s the weather for the next 3 days</h4>' +
+        '<div class="row"><div class="js-forecast forecast-weather"></div></div></section>');
 
     //weather 3 days ago
     var threeDaysAgo = new Date();
@@ -277,8 +274,7 @@ function getWeatherData(locObj) {
     //curent weather and forecast for next 4 days (including today)
     getDataFromWeatherApi(locObj.data(), 'forecast', '&days=4', displayForecastData);
 
-    // HELP!!! this is not showing after clicking the first time. Then it shows up
-    //each time later on ALL other weather details
+
     if (weatherError) {
         locObj.find($('.weather-details')).text('Sorry. No weather information available.');
         weatherError = false; //reset
